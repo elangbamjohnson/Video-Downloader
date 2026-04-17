@@ -7,23 +7,18 @@
 
 import Foundation
 
-// MARK: - API Response Models (Unified for FastSaverAPI)
+// MARK: - API Response Models
 struct APIResponse: Codable {
+    // Facebook API fields
+    let success: Bool?
+    let data: [MediaData]?
+    let directMediaUrl: String?
+    
+    // Instagram/All-In-One fields
     let error: Bool?
     let message: String?
-    let title: String?
-    let thumbnail: String?
-    let duration: String?
-    let hosting: String?
-    
-    // Direct URL field often used by this API
     let downloadUrl: String?
-    
-    // Alternative field: array of links
     let links: [MediaData]?
-    
-    // Legacy support field from previous attempts
-    let directMediaUrl: String?
 }
 
 struct MediaData: Codable {

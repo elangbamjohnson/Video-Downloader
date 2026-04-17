@@ -20,7 +20,6 @@ class ContentViewModel: ObservableObject {
     @Published var alertMessage: String = ""
     
     private let rapidAPIKey = "527c409d18mshf17577cf03a5410p17d717jsn26603340f1ba"
-    private let rapidAPIHost = "auto-download-all-in-one.p.rapidapi.com"
 
     func startProcess() {
         guard !url.isEmpty else { return }
@@ -51,24 +50,32 @@ class ContentViewModel: ObservableObject {
     }
     
     private func fetchVideoInfo(for videoURL: String) async throws -> String {
-        // Using the Unified API (FastSaverAPI) for both FB and IG
-        guard var components = URLComponents(string: "https://\(rapidAPIHost)/v1/get-info") else {
-            throw URLError(.badURL)
+        let isFacebook = videoURL.contains("facebook.com") || videoURL.contains("fb.watch")
+        
+        let host = isFacebook ? "facebook-media-downloader1.p.rapidapi.com" : "auto-download-all-in-one.p.rapidapi.com"
+        let path = isFacebook ? "/get_media" : "/v1/get-info"
+        let method = isFacebook ? "POST" : "GET"
+        
+        var request: URLRequest
+        
+        if method == "POST" {
+            request = URLRequest(url: URL(string: "https://\(host)\(path)")!)
+            request.httpMethod = "POST"
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            let body = ["url": videoURL]
+            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        } else {
+            var components = URLComponents(string: "https://\(host)\(path)")!
+            components.queryItems = [URLQueryItem(name: "url", value: videoURL)]
+            request = URLRequest(url: components.url!)
+            request.httpMethod = "GET"
         }
         
-        components.queryItems = [URLQueryItem(name: "url", value: videoURL)]
+        request.timeoutInterval = 20
+        request.addValue(rapidAPIKey, forHTTPHeaderField: "x-rapidapi-key")
+        request.addValue(host, forHTTPHeaderField: "x-rapidapi-host")
         
-        guard let url = components.url else { throw URLError(.badURL) }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 30
-        
-        // Headers
-        request.addValue(rapidAPIKey, forHTTPHeaderField: "X-RapidAPI-Key")
-        request.addValue(rapidAPIHost, forHTTPHeaderField: "X-RapidAPI-Host")
-        
-        print("DEBUG: Fetching info for \(videoURL) using GET from Unified API")
+        print("DEBUG: Fetching from \(host) using \(method)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -76,33 +83,29 @@ class ContentViewModel: ObservableObject {
             print("DEBUG: Raw JSON Response: \(jsonString)")
         }
         
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            let code = (response as? HTTPURLResponse)?.statusCode ?? 0
-            throw NSError(domain: "VideoDownloader", code: code, userInfo: [NSLocalizedDescriptionKey: "Server returned error \(code)"])
-        }
-        
         let apiResponse = try JSONDecoder.codableValue.decode(APIResponse.self, from: data)
         
-        if apiResponse.error == true {
-            throw NSError(domain: "VideoDownloader", code: 400, userInfo: [NSLocalizedDescriptionKey: apiResponse.message ?? "API Error"])
-        }
-        
-        // 1. Try primary downloadUrl field
-        if let direct = apiResponse.downloadUrl, !direct.isEmpty {
-            return direct
-        }
-        
-        // 2. Try secondary directMediaUrl field
+        // 1. Check direct_media_url (Latest Facebook format)
         if let direct = apiResponse.directMediaUrl, !direct.isEmpty {
             return direct
         }
         
-        // 3. Try links array
+        // 2. Try data array
+        if let mediaData = apiResponse.data, let first = mediaData.first {
+            if let link = first.url ?? first.link { return link }
+        }
+        
+        // 3. Try direct downloadUrl
+        if let direct = apiResponse.downloadUrl, !direct.isEmpty {
+            return direct
+        }
+        
+        // 4. Try links array
         if let links = apiResponse.links, let first = links.first, let link = first.link ?? first.url {
             return link
         }
         
-        throw NSError(domain: "VideoDownloader", code: 404, userInfo: [NSLocalizedDescriptionKey: "No download link found. Please verify the link is public and accessible."])
+        throw NSError(domain: "VideoDownloader", code: 404, userInfo: [NSLocalizedDescriptionKey: "No download link found in response."])
     }
     
     private func downloadFile(from urlString: String) async throws -> URL {
@@ -122,7 +125,7 @@ class ContentViewModel: ObservableObject {
     }
 }
 
-// Helper extension for logic-related decoding
+// Helper extension moved to ViewModel file as it's logic-related
 extension JSONDecoder {
     static var codableValue: JSONDecoder {
         let decoder = JSONDecoder()
