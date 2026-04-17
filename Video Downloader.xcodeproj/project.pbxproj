@@ -336,17 +336,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		2C354AED2F920AFF006EC5C0 /* XCRemoteSwiftPackageReference "Loadify-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/VishwaiOSDev/LoadifyEngine";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 2C354AD12F920594006EC5C0 /* Project object */;
 }
