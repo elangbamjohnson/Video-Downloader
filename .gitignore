@@ -1,0 +1,55 @@
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings
+xcuserdata/
+
+## Xcode 8 and earlier
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+
+## Xcode 10 and later
+.DS_Store
+*.xcuserstate
+
+## Packages
+.swiftpm/
+.build/
+
+## DerivedData
+DerivedData/
+
+## Build results
+build/
+DerivedData/
+
+## Other
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid committing the test-generated package
+# .build/
+
+# Carthage
+#
+# Add this line if you want to avoid committing the build artifacts of dependencies
+# Carthage/Build
+
+# fastlane
+#
+# It is recommended to not store the packages in the repo
+# fastlane/report.xml
+# fastlane/Preview.html
+# fastlane/screenshots/**/*.png
+# fastlane/test_output
+
+# Code Injection
+#
+# For gitignore contributors: remember to update Global/CodeInjection.gitignore
+.injection/
