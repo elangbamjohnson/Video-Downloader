@@ -133,11 +133,35 @@ class ContentViewModel: ObservableObject {
     }
 
     private func downloadFile(from url: URL) async throws -> URL {
-        let (localURL, response) = try await URLSession.shared.download(from: url)
-        guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+        let (bytes, response) = try await URLSession.shared.bytes(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        
+        let totalBytes = httpResponse.expectedContentLength
+        var downloadedData = Data()
+        
+        if totalBytes > 0 {
+            downloadedData.reserveCapacity(Int(totalBytes))
+        }
+        
+        for try await byte in bytes {
+            downloadedData.append(byte)
+            
+            if totalBytes > 0 {
+                let progress = Double(downloadedData.count) / Double(totalBytes)
+                // Update progress on the main actor
+                if Int(progress * 100) % 5 == 0 { // Update every 5% to reduce UI jitter
+                    self.downloadProgress = progress
+                }
+            }
+        }
+        
+        self.downloadProgress = 1.0
         
         let destinationURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("mp4")
-        try FileManager.default.moveItem(at: localURL, to: destinationURL)
+        try downloadedData.write(to: destinationURL)
         return destinationURL
     }
 

@@ -95,10 +95,16 @@ struct ContentView: View {
                                     ProgressView(value: viewModel.downloadProgress, total: 1.0)
                                         .progressViewStyle(.linear)
                                         .tint(.blue)
-                                    
-                                    Text(viewModel.statusMessage)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+
+                                    HStack {
+                                        Text(viewModel.statusMessage)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                        Spacer()
+                                        Text("\(Int(viewModel.downloadProgress * 100))%")
+                                            .font(.caption.monospacedDigit())
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 .padding(.horizontal)
                                 .transition(.opacity.combined(with: .scale))
