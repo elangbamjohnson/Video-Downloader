@@ -9,6 +9,7 @@ import Combine
 import LoadifyEngine
 
 @MainActor
+
 class ContentViewModel: ObservableObject {
     @Published var url: String = ""
     @Published var isDownloading: Bool = false
@@ -23,12 +24,12 @@ class ContentViewModel: ObservableObject {
     
     private let client = LoadifyClient()
     
-    // Updated fallback instances of Cobalt API (verified for 2026)
+    // Most reliable and active Cobalt instances for 2026
     private let fallbackHosts = [
-        "cobalt.canine.tools",
-        "api-dl.cgm.rs",
-        "cobalt.meowing.de",
-        "cobalt.synzr.space"
+        "https://cobalt.canine.tools",
+        "https://cobalt.meowing.de",
+        "https://cobalt.sh",
+        "https://cobalt.inst.moe"
     ]
 
     func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
@@ -78,31 +79,42 @@ class ContentViewModel: ObservableObject {
 
     private func tryFallbackAPI() async {
         for host in fallbackHosts {
-            do {
-                statusMessage = "Connecting to \(host)..."
-                let downloadLink = try await fetchFromCobalt(host: host)
-                statusMessage = "Downloading file..."
-                let localURL = try await downloadFile(from: URL(string: downloadLink)!)
-                try await finalizeDownload(localURL: localURL)
-                return // Success!
-            } catch {
-                print("DEBUG: Fallback to \(host) failed: \(error)")
-                continue
+            // Systematic attempt: try root first (modern Cobalt), then /api/json (classic)
+            let paths = ["/", "/api/json"]
+            
+            for path in paths {
+                let endpoint = host + path
+                do {
+                    let displayHost = host.replacingOccurrences(of: "https://", with: "")
+                    statusMessage = "Connecting to \(displayHost)..."
+                    
+                    let downloadLink = try await fetchFromCobalt(endpoint: endpoint)
+                    
+                    statusMessage = "Downloading file..."
+                    guard let dlURL = URL(string: downloadLink) else { continue }
+                    let localURL = try await downloadFile(from: dlURL)
+                    
+                    try await finalizeDownload(localURL: localURL)
+                    return // Success!
+                } catch {
+                    print("DEBUG: Fallback to \(endpoint) failed: \(error)")
+                    // If we get a 400 or 404, it might be the wrong path for this host, so continue to next path/host
+                    continue
+                }
             }
         }
         
         // If all fallbacks fail
-        handleFinalError(message: "All download services are currently unavailable. The video platform may have updated its security. Please try again later or with a different link.")
+        handleFinalError(message: "All download services are currently unavailable for this link. The platform may have updated its security. Please try another link or try again later.")
     }
 
-    private func fetchFromCobalt(host: String) async throws -> String {
-        guard let apiUrl = URL(string: "https://\(host)") else { throw URLError(.badURL) }
+    private func fetchFromCobalt(endpoint: String) async throws -> String {
+        guard let apiUrl = URL(string: endpoint) else { throw URLError(.badURL) }
         
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
-        request.timeoutInterval = 15 // Shorter timeout for faster fallback
+        request.timeoutInterval = 8 // Faster cycling
         
-        // Mandatory Headers for Cobalt API
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
@@ -118,13 +130,13 @@ class ContentViewModel: ObservableObject {
         guard let httpResponse = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         
         if httpResponse.statusCode != 200 {
-            print("DEBUG: \(host) returned status \(httpResponse.statusCode)")
-            throw URLError(.badServerResponse)
+            throw NSError(domain: "Cobalt", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Server returned \(httpResponse.statusCode)"])
         }
         
         let apiResponse = try JSONDecoder().decode(FallbackAPIResponse.self, from: data)
         
-        if let downloadUrl = apiResponse.url { return downloadUrl }
+        if let downloadUrl = apiResponse.url, !downloadUrl.isEmpty { return downloadUrl }
+        
         if let status = apiResponse.status, status == "error" {
             throw NSError(domain: "Cobalt", code: 400, userInfo: [NSLocalizedDescriptionKey: apiResponse.text ?? "Unknown API Error"])
         }
@@ -187,7 +199,6 @@ class ContentViewModel: ObservableObject {
     }
 }
 
-// Separate model for Fallback API to avoid confusion with internal models
 struct FallbackAPIResponse: Codable {
     let status: String?
     let url: String?
