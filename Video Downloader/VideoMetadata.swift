@@ -7,22 +7,9 @@
 
 import Foundation
 
-// MARK: - API Response Models
+// MARK: - API Response Models (Cobalt API)
 struct APIResponse: Codable {
-    // Facebook API fields
-    let success: Bool?
-    let data: [MediaData]?
-    let directMediaUrl: String?
-    
-    // Instagram/All-In-One fields
-    let error: Bool?
-    let message: String?
-    let downloadUrl: String?
-    let links: [MediaData]?
-}
-
-struct MediaData: Codable {
-    let url: String?
-    let link: String?
-    let quality: String?
+    let status: String? // "success", "error", "redirect", "picker"
+    let url: String?    // The direct download URL
+    let text: String?   // Error message if status is "error"
 }

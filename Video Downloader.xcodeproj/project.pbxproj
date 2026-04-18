@@ -6,8 +6,28 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2C354B062F934D8A006EC5C0 /* LoadifyEngine.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */; };
+		2C354B072F934D8A006EC5C0 /* LoadifyEngine.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		2C354B082F934D8A006EC5C0 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				2C354B072F934D8A006EC5C0 /* LoadifyEngine.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		2C354AD92F920595006EC5C0 /* Video Downloader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Video Downloader.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = LoadifyEngine.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2C354B062F934D8A006EC5C0 /* LoadifyEngine.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,6 +53,7 @@
 		2C354AD02F920594006EC5C0 = {
 			isa = PBXGroup;
 			children = (
+				2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */,
 				2C354ADB2F920595006EC5C0 /* Video Downloader */,
 				2C354ADA2F920595006EC5C0 /* Products */,
 			);
@@ -55,6 +77,7 @@
 				2C354AD52F920594006EC5C0 /* Sources */,
 				2C354AD62F920594006EC5C0 /* Frameworks */,
 				2C354AD72F920594006EC5C0 /* Resources */,
+				2C354B082F934D8A006EC5C0 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);

@@ -2,12 +2,11 @@
 //  ContentViewModel.swift
 //  Video Downloader
 //
-//  Created by Johnson on 17/04/26.
-//
 
 import SwiftUI
 import Photos
 import Combine
+import LoadifyEngine
 
 @MainActor
 class ContentViewModel: ObservableObject {
@@ -18,98 +17,122 @@ class ContentViewModel: ObservableObject {
     @Published var showAlert: Bool = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
+    @Published var selectedQuality: String = "720"
     
-    private let rapidAPIKey = "527c409d18mshf17577cf03a5410p17d717jsn26603340f1ba"
+    let qualities = ["360", "480", "720", "1080", "max"]
+    
+    private let client = LoadifyClient()
+    
+    // Updated fallback instances of Cobalt API (verified for 2026)
+    private let fallbackHosts = [
+        "cobalt.canine.tools",
+        "api-dl.cgm.rs",
+        "cobalt.meowing.de",
+        "cobalt.synzr.space"
+    ]
+
+    func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.prepare()
+        generator.impactOccurred()
+    }
+
+    func triggerNotificationHaptic(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        let generator = UINotificationFeedbackGenerator()
+        generator.prepare()
+        generator.notificationOccurred(type)
+    }
 
     func startProcess() {
         guard !url.isEmpty else { return }
         
+        triggerHaptic(.light)
         isDownloading = true
         statusMessage = "Analyzing link..."
         downloadProgress = 0.0
         
         Task {
             do {
-                let downloadLink = try await fetchVideoInfo(for: url)
-                statusMessage = "Downloading file..."
-                let localURL = try await downloadFile(from: downloadLink)
-                statusMessage = "Saving to Gallery..."
-                try await saveToPhotos(fileURL: localURL)
-                statusMessage = "Successfully saved!"
-                isDownloading = false
-                url = ""
+                // Try LoadifyEngine first
+                try await processWithLoadify()
             } catch {
-                print("DEBUG: Final catch error: \(error)")
-                statusMessage = "Error: \(error.localizedDescription)"
-                isDownloading = false
-                alertTitle = "Process Failed"
-                alertMessage = error.localizedDescription
-                showAlert = true
+                print("DEBUG: Engine Error: \(error)")
+                statusMessage = "Engine issue. Trying fallback..."
+                // Fallback to manual Cobalt API calls
+                await tryFallbackAPI()
             }
         }
     }
-    
-    private func fetchVideoInfo(for videoURL: String) async throws -> String {
-        let isFacebook = videoURL.contains("facebook.com") || videoURL.contains("fb.watch")
+
+    private func processWithLoadify() async throws {
+        let details = try await client.fetchVideoDetails(for: url)
+        statusMessage = "Downloading from \(details.platform)..."
         
-        let host = isFacebook ? "facebook-media-downloader1.p.rapidapi.com" : "auto-download-all-in-one.p.rapidapi.com"
-        let path = isFacebook ? "/get_media" : "/v1/get-info"
-        let method = isFacebook ? "POST" : "GET"
-        
-        var request: URLRequest
-        
-        if method == "POST" {
-            request = URLRequest(url: URL(string: "https://\(host)\(path)")!)
-            request.httpMethod = "POST"
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            let body = ["url": videoURL]
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        } else {
-            var components = URLComponents(string: "https://\(host)\(path)")!
-            components.queryItems = [URLQueryItem(name: "url", value: videoURL)]
-            request = URLRequest(url: components.url!)
-            request.httpMethod = "GET"
+        guard let videoURL = URL(string: details.video.url) else {
+            throw URLError(.badURL)
         }
         
-        request.timeoutInterval = 20
-        request.addValue(rapidAPIKey, forHTTPHeaderField: "x-rapidapi-key")
-        request.addValue(host, forHTTPHeaderField: "x-rapidapi-host")
+        let localURL = try await downloadFile(from: videoURL)
+        try await finalizeDownload(localURL: localURL)
+    }
+
+    private func tryFallbackAPI() async {
+        for host in fallbackHosts {
+            do {
+                statusMessage = "Connecting to \(host)..."
+                let downloadLink = try await fetchFromCobalt(host: host)
+                statusMessage = "Downloading file..."
+                let localURL = try await downloadFile(from: URL(string: downloadLink)!)
+                try await finalizeDownload(localURL: localURL)
+                return // Success!
+            } catch {
+                print("DEBUG: Fallback to \(host) failed: \(error)")
+                continue
+            }
+        }
         
-        print("DEBUG: Fetching from \(host) using \(method)")
+        // If all fallbacks fail
+        handleFinalError(message: "All download services are currently unavailable. The video platform may have updated its security. Please try again later or with a different link.")
+    }
+
+    private func fetchFromCobalt(host: String) async throws -> String {
+        guard let apiUrl = URL(string: "https://\(host)") else { throw URLError(.badURL) }
+        
+        var request = URLRequest(url: apiUrl)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 15 // Shorter timeout for faster fallback
+        
+        // Mandatory Headers for Cobalt API
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        let body: [String: Any] = [
+            "url": url,
+            "videoQuality": selectedQuality,
+            "filenameStyle": "pretty"
+        ]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
-        if let jsonString = String(data: data, encoding: .utf8) {
-            print("DEBUG: Raw JSON Response: \(jsonString)")
+        guard let httpResponse = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
+        
+        if httpResponse.statusCode != 200 {
+            print("DEBUG: \(host) returned status \(httpResponse.statusCode)")
+            throw URLError(.badServerResponse)
         }
         
-        let apiResponse = try JSONDecoder.codableValue.decode(APIResponse.self, from: data)
+        let apiResponse = try JSONDecoder().decode(FallbackAPIResponse.self, from: data)
         
-        // 1. Check direct_media_url (Latest Facebook format)
-        if let direct = apiResponse.directMediaUrl, !direct.isEmpty {
-            return direct
+        if let downloadUrl = apiResponse.url { return downloadUrl }
+        if let status = apiResponse.status, status == "error" {
+            throw NSError(domain: "Cobalt", code: 400, userInfo: [NSLocalizedDescriptionKey: apiResponse.text ?? "Unknown API Error"])
         }
         
-        // 2. Try data array
-        if let mediaData = apiResponse.data, let first = mediaData.first {
-            if let link = first.url ?? first.link { return link }
-        }
-        
-        // 3. Try direct downloadUrl
-        if let direct = apiResponse.downloadUrl, !direct.isEmpty {
-            return direct
-        }
-        
-        // 4. Try links array
-        if let links = apiResponse.links, let first = links.first, let link = first.link ?? first.url {
-            return link
-        }
-        
-        throw NSError(domain: "VideoDownloader", code: 404, userInfo: [NSLocalizedDescriptionKey: "No download link found in response."])
+        throw URLError(.fileDoesNotExist)
     }
-    
-    private func downloadFile(from urlString: String) async throws -> URL {
-        guard let url = URL(string: urlString) else { throw URLError(.badURL) }
+
+    private func downloadFile(from url: URL) async throws -> URL {
         let (localURL, response) = try await URLSession.shared.download(from: url)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
         
@@ -117,19 +140,32 @@ class ContentViewModel: ObservableObject {
         try FileManager.default.moveItem(at: localURL, to: destinationURL)
         return destinationURL
     }
-    
-    private func saveToPhotos(fileURL: URL) async throws {
+
+    private func finalizeDownload(localURL: URL) async throws {
+        statusMessage = "Saving to Gallery..."
         try await PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: fileURL)
+            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
         }
+        statusMessage = "Successfully saved!"
+        triggerNotificationHaptic(.success)
+        isDownloading = false
+        url = ""
+        try? FileManager.default.removeItem(at: localURL)
+    }
+
+    private func handleFinalError(message: String) {
+        statusMessage = "Error: Process Failed"
+        triggerNotificationHaptic(.error)
+        isDownloading = false
+        alertTitle = "Download Failed"
+        alertMessage = message
+        showAlert = true
     }
 }
 
-// Helper extension moved to ViewModel file as it's logic-related
-extension JSONDecoder {
-    static var codableValue: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return decoder
-    }
+// Separate model for Fallback API to avoid confusion with internal models
+struct FallbackAPIResponse: Codable {
+    let status: String?
+    let url: String?
+    let text: String?
 }
