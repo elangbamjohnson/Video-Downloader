@@ -40,7 +40,7 @@ struct ContentView: View {
                                 .font(.headline)
                                 .padding(.leading, 4)
                             
-                            TextField("Paste link from Instagram, TikTok, etc.", text: $viewModel.url)
+                            TextField("Paste link from Instagram or Facebook", text: $viewModel.url)
                                 .padding()
                                 .background(Color(.systemBackground))
                                 .cornerRadius(12)
@@ -123,9 +123,7 @@ struct ContentView: View {
                             
                             HStack(spacing: 25) {
                                 PlatformIcon(name: "Instagram", icon: "camera.fill")
-                                PlatformIcon(name: "TikTok", icon: "music.note")
                                 PlatformIcon(name: "Facebook", icon: "f.circle.fill")
-                                PlatformIcon(name: "X/Twitter", icon: "x.circle.fill")
                             }
                         }
                         .padding(.top, 20)

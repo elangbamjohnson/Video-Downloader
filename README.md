@@ -1,10 +1,10 @@
 # Video Downloader for iOS
 
-A professional, high-performance video downloader for iOS built with SwiftUI. This app allows users to seamlessly download high-quality videos from popular social media platforms including **Facebook, Instagram, TikTok, and X (Twitter)** directly to their Photo Library.
+A professional, high-performance video downloader for iOS built with SwiftUI. This app allows users to seamlessly download high-quality videos from popular social media platforms including **Facebook and Instagram** directly to their Photo Library.
 
 ## 🚀 Features
 
-- **Multi-Platform Support**: Optimized for Facebook Reels/Videos, Instagram Reels/Stories, TikTok, and X.
+- **Multi-Platform Support**: Optimized for Facebook Reels/Videos and Instagram Reels/Stories.
 - **Smart Processing Engine**: 
   - **Primary**: Powered by `LoadifyEngine.xcframework` for high-speed, direct extraction.
   - **Fallback**: Intelligent multi-service fallback system that automatically cycles through multiple global **Cobalt API** nodes if the primary engine encounters platform-specific updates or decoding issues.
