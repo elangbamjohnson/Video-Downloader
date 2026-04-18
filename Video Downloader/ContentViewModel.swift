@@ -6,6 +6,7 @@
 import SwiftUI
 import Photos
 import Combine
+import UserNotifications
 import LoadifyEngine
 
 @MainActor
@@ -36,10 +37,39 @@ class ContentViewModel: NSObject, ObservableObject {
 
     override init() {
         super.init()
+        setupNotifications()
         let config = URLSessionConfiguration.background(withIdentifier: "com.video.downloader.background")
         config.sessionSendsLaunchEvents = true
-        // We use a separate delegate queue to avoid blocking the main thread
         self.backgroundSession = URLSession(configuration: config, delegate: self, delegateQueue: .main)
+    }
+
+    private func setupNotifications() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if granted {
+                print("DEBUG: Notification permission granted.")
+            } else if let error = error {
+                print("DEBUG: Notification permission error: \(error.localizedDescription)")
+            }
+        }
+    }
+
+    private func sendCompletionNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "Download Complete"
+        content.body = "Your video has been successfully saved to the Gallery."
+        content.sound = .default
+
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: nil // Deliver immediately
+        )
+
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("DEBUG: Error scheduling notification: \(error)")
+            }
+        }
     }
 
     func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
@@ -199,6 +229,7 @@ extension ContentViewModel: URLSessionDownloadDelegate {
                 self.downloadProgress = 1.0
                 do {
                     try await self.finalizeDownload(localURL: destinationURL)
+                    self.sendCompletionNotification() // Show completion banner
                 } catch {
                     self.handleFinalError(message: "Failed to save video: \(error.localizedDescription)")
                 }
