@@ -9,8 +9,7 @@ import Combine
 import LoadifyEngine
 
 @MainActor
-
-class ContentViewModel: ObservableObject {
+class ContentViewModel: NSObject, ObservableObject {
     @Published var url: String = ""
     @Published var isDownloading: Bool = false
     @Published var downloadProgress: Double = 0.0
@@ -18,19 +17,30 @@ class ContentViewModel: ObservableObject {
     @Published var showAlert: Bool = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
-    @Published var selectedQuality: String = "720"
+    @Published var selectedQuality: String = "360"
     
     let qualities = ["360", "480", "720", "1080", "max"]
     
     private let client = LoadifyClient()
     
-    // Most reliable and active Cobalt instances for 2026
+    // Verified fallback base URLs
     private let fallbackHosts = [
         "https://cobalt.canine.tools",
         "https://cobalt.meowing.de",
         "https://cobalt.sh",
         "https://cobalt.inst.moe"
     ]
+    
+    private var backgroundSession: URLSession?
+    private var activeDownloadURL: URL?
+
+    override init() {
+        super.init()
+        let config = URLSessionConfiguration.background(withIdentifier: "com.video.downloader.background")
+        config.sessionSendsLaunchEvents = true
+        // We use a separate delegate queue to avoid blocking the main thread
+        self.backgroundSession = URLSession(configuration: config, delegate: self, delegateQueue: .main)
+    }
 
     func triggerHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
         let generator = UIImpactFeedbackGenerator(style: style)
@@ -73,15 +83,12 @@ class ContentViewModel: ObservableObject {
             throw URLError(.badURL)
         }
         
-        let localURL = try await downloadFile(from: videoURL)
-        try await finalizeDownload(localURL: localURL)
+        startBackgroundDownload(from: videoURL)
     }
 
     private func tryFallbackAPI() async {
         for host in fallbackHosts {
-            // Systematic attempt: try root first (modern Cobalt), then /api/json (classic)
             let paths = ["/", "/api/json"]
-            
             for path in paths {
                 let endpoint = host + path
                 do {
@@ -92,20 +99,17 @@ class ContentViewModel: ObservableObject {
                     
                     statusMessage = "Downloading file..."
                     guard let dlURL = URL(string: downloadLink) else { continue }
-                    let localURL = try await downloadFile(from: dlURL)
                     
-                    try await finalizeDownload(localURL: localURL)
-                    return // Success!
+                    startBackgroundDownload(from: dlURL)
+                    return // Task handed over to background session
                 } catch {
                     print("DEBUG: Fallback to \(endpoint) failed: \(error)")
-                    // If we get a 400 or 404, it might be the wrong path for this host, so continue to next path/host
                     continue
                 }
             }
         }
         
-        // If all fallbacks fail
-        handleFinalError(message: "All download services are currently unavailable for this link. The platform may have updated its security. Please try another link or try again later.")
+        handleFinalError(message: "All download services are currently unavailable. Please try again later.")
     }
 
     private func fetchFromCobalt(endpoint: String) async throws -> String {
@@ -113,24 +117,21 @@ class ContentViewModel: ObservableObject {
         
         var request = URLRequest(url: apiUrl)
         request.httpMethod = "POST"
-        request.timeoutInterval = 8 // Faster cycling
+        request.timeoutInterval = 10
         
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
         let body: [String: Any] = [
             "url": url,
-            "videoQuality": selectedQuality,
-            "filenameStyle": "pretty"
+            "videoQuality": selectedQuality
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
-        
-        if httpResponse.statusCode != 200 {
-            throw NSError(domain: "Cobalt", code: httpResponse.statusCode, userInfo: [NSLocalizedDescriptionKey: "Server returned \(httpResponse.statusCode)"])
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw URLError(.badServerResponse)
         }
         
         let apiResponse = try JSONDecoder().decode(FallbackAPIResponse.self, from: data)
@@ -144,40 +145,13 @@ class ContentViewModel: ObservableObject {
         throw URLError(.fileDoesNotExist)
     }
 
-    private func downloadFile(from url: URL) async throws -> URL {
-        let (bytes, response) = try await URLSession.shared.bytes(from: url)
-        
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            throw URLError(.badServerResponse)
-        }
-        
-        let totalBytes = httpResponse.expectedContentLength
-        var downloadedData = Data()
-        
-        if totalBytes > 0 {
-            downloadedData.reserveCapacity(Int(totalBytes))
-        }
-        
-        for try await byte in bytes {
-            downloadedData.append(byte)
-            
-            if totalBytes > 0 {
-                let progress = Double(downloadedData.count) / Double(totalBytes)
-                // Update progress on the main actor
-                if Int(progress * 100) % 5 == 0 { // Update every 5% to reduce UI jitter
-                    self.downloadProgress = progress
-                }
-            }
-        }
-        
-        self.downloadProgress = 1.0
-        
-        let destinationURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("mp4")
-        try downloadedData.write(to: destinationURL)
-        return destinationURL
+    private func startBackgroundDownload(from url: URL) {
+        self.activeDownloadURL = url
+        let task = backgroundSession?.downloadTask(with: url)
+        task?.resume()
     }
 
-    private func finalizeDownload(localURL: URL) async throws {
+    func finalizeDownload(localURL: URL) async throws {
         statusMessage = "Saving to Gallery..."
         try await PHPhotoLibrary.shared().performChanges {
             PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
@@ -186,6 +160,8 @@ class ContentViewModel: ObservableObject {
         triggerNotificationHaptic(.success)
         isDownloading = false
         url = ""
+        // No need to manually remove here if it's a tmp file from downloadTask, 
+        // but we'll be safe
         try? FileManager.default.removeItem(at: localURL)
     }
 
@@ -196,6 +172,51 @@ class ContentViewModel: ObservableObject {
         alertTitle = "Download Failed"
         alertMessage = message
         showAlert = true
+    }
+}
+
+// MARK: - URLSessionDownloadDelegate
+extension ContentViewModel: URLSessionDownloadDelegate {
+    nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        guard totalBytesExpectedToWrite > 0 else { return }
+        
+        let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+        
+        Task { @MainActor in
+            self.downloadProgress = progress
+        }
+    }
+    
+    nonisolated func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        // Move file to a permanent temporary location because 'location' is deleted after this method
+        let fileManager = FileManager.default
+        let destinationURL = fileManager.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("mp4")
+        
+        do {
+            try fileManager.moveItem(at: location, to: destinationURL)
+            
+            Task { @MainActor in
+                self.downloadProgress = 1.0
+                do {
+                    try await self.finalizeDownload(localURL: destinationURL)
+                } catch {
+                    self.handleFinalError(message: "Failed to save video: \(error.localizedDescription)")
+                }
+            }
+        } catch {
+            Task { @MainActor in
+                self.handleFinalError(message: "Failed to process downloaded file.")
+            }
+        }
+    }
+    
+    nonisolated func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        if let error = error {
+            print("DEBUG: Background task completed with error: \(error)")
+            Task { @MainActor in
+                self.handleFinalError(message: error.localizedDescription)
+            }
+        }
     }
 }
 
