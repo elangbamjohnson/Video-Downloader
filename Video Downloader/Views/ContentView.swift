@@ -146,7 +146,66 @@ struct ContentView: View {
             } message: {
                 Text(viewModel.alertMessage)
             }
+            .overlay(alignment: .bottom) {
+                if viewModel.showSuggestion {
+                    suggestionCard
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                viewModel.checkClipboard()
+            }
+            .onAppear {
+                viewModel.checkClipboard()
+            }
         }
+    }
+
+    private var suggestionCard: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(String(format: Constants.UI.linkDetectedTitle, viewModel.detectedPlatform))
+                        .font(.headline)
+                    Text(Constants.UI.suggestionDescription)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Button(action: viewModel.dismissSuggestion) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.gray.opacity(0.5))
+                        .font(.title2)
+                }
+            }
+            
+            HStack(spacing: 12) {
+                Button(action: viewModel.dismissSuggestion) {
+                    Text(Constants.UI.dismissTitle)
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color(.systemGray5))
+                        .cornerRadius(10)
+                }
+                .foregroundStyle(.primary)
+                
+                Button(action: viewModel.useDetectedURL) {
+                    Text(Constants.UI.downloadNowTitle)
+                        .font(.subheadline.bold())
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                .foregroundStyle(.white)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
     }
 }
 
