@@ -38,8 +38,25 @@ class ContentViewModel: NSObject, ObservableObject {
     override init() {
         super.init()
         setupNotifications()
+        
         let config = URLSessionConfiguration.background(withIdentifier: "com.video.downloader.background")
         config.sessionSendsLaunchEvents = true
+        
+        // --- Optimizations for Speed ---
+        config.isDiscretionary = false 
+        config.waitsForConnectivity = true
+        
+        // Priority Network Service Type
+        config.networkServiceType = .responsiveData
+        
+        // Increase concurrent connections for the background session
+        config.httpMaximumConnectionsPerHost = 6
+        
+        // Allow all network types
+        config.allowsCellularAccess = true
+        config.allowsExpensiveNetworkAccess = true
+        config.allowsConstrainedNetworkAccess = true
+        
         self.backgroundSession = URLSession(configuration: config, delegate: self, delegateQueue: .main)
     }
 
@@ -154,7 +171,11 @@ class ContentViewModel: NSObject, ObservableObject {
         
         let body: [String: Any] = [
             "url": url,
-            "videoQuality": selectedQuality
+            "videoQuality": selectedQuality,
+            "downloadMode": "tunnel",  // Force server-side processing for speed on iOS
+            "vCodec": "h264",          // Use efficient codec
+            "aFormat": "mp3",          // Stable audio format
+            "filenameStyle": "pretty"
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
