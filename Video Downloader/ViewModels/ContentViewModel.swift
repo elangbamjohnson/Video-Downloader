@@ -122,8 +122,6 @@ class ContentViewModel: NSObject, ObservableObject {
             platform = Constants.UI.instagramName
         } else if lowercased.contains("facebook.com") || lowercased.contains("fb.watch") {
             platform = Constants.UI.facebookName
-        } else if lowercased.contains("tiktok.com") {
-            platform = "TikTok"
         }
         
         if !platform.isEmpty {
