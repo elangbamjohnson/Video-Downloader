@@ -4,6 +4,7 @@ A professional, high-performance video downloader for iOS built with SwiftUI. Th
 
 ## 🚀 Features
 
+- **Smart Magic Paste ✨**: Proactive clipboard monitoring that automatically detects video links from supported platforms and suggests a "one-tap" download experience upon opening the app.
 - **Multi-Platform Support**: Optimized for Facebook Reels/Videos and Instagram Reels/Stories.
 - **Smart Processing Engine**: 
   - **Primary**: Powered by `LoadifyEngine.xcframework` for high-speed, direct extraction.
@@ -18,11 +19,12 @@ A professional, high-performance video downloader for iOS built with SwiftUI. Th
 ## 🛠 Tech Stack
 
 - **SwiftUI**: Modern declarative UI.
-- **MVVM Architecture**: Clean separation of concerns between view and logic.
+- **MVVM Architecture**: Clean separation of concerns with a organized folder structure (**Models, Views, ViewModels, Services, Resources**).
 - **Swift Concurrency**: `async/await` for smooth, non-blocking network operations.
+- **Background Downloads**: Leverages `URLSession` background configuration to ensure downloads continue even if the app is suspended.
 - **External Engines**: 
   - `LoadifyEngine.xcframework`: Proprietary binary extraction engine.
-  - **Cobalt API Nodes**: Leverages community instances (`cobalt.canine.tools`, `api-dl.cgm.rs`, etc.) for maximum uptime.
+  - **Cobalt API Nodes**: Leverages community instances for maximum uptime.
 
 ## 📦 Installation & Setup
 
@@ -42,11 +44,12 @@ A professional, high-performance video downloader for iOS built with SwiftUI. Th
 
 ## 📖 How to Use
 
-1. Copy a video link from your favorite app (Facebook, Instagram, etc.).
-2. Paste the link into the URL field.
-3. Select your desired quality.
-4. Tap **Download Video**.
-5. Once complete, find your video in the **Photos** app!
+1. **Copy** a video link from Facebook or Instagram.
+2. **Open** the Video Downloader app.
+3. **Smart Suggestion**: A card will automatically appear if a valid link is detected in your clipboard. Tap **"Download Now"** for instant processing.
+4. **Manual**: Or, paste the link into the URL field and select your desired quality.
+5. **Download**: Tap **Download Video** and monitor progress in real-time.
+6. **Enjoy**: Once complete, find your video in the **Photos** app!
 
 ## 🤝 Contribution
 
