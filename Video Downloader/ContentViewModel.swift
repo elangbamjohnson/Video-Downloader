@@ -20,6 +20,11 @@ class ContentViewModel: NSObject, ObservableObject {
     @Published var alertMessage: String = ""
     @Published var selectedQuality: String = Constants.UI.defaultQuality
     
+    // Smart Suggestion State
+    @Published var detectedURL: String? = nil
+    @Published var detectedPlatform: String = ""
+    @Published var showSuggestion: Bool = false
+    
     let qualities = Constants.UI.qualities
     
     private let client = LoadifyClient()
@@ -119,7 +124,7 @@ class ContentViewModel: NSObject, ObservableObject {
 
     private func processWithLoadify() async throws {
         let details = try await client.fetchVideoDetails(for: url)
-        statusMessage = Constants.Messages.downloadingFrom.replacingOccurrences(of: "%s", with: details.platform)
+        statusMessage = Constants.Messages.downloadingFrom.replacingOccurrences(of: "%s", with: details.platform.rawValue)
         
         guard let videoURL = URL(string: details.video.url) else {
             throw URLError(.badURL)
@@ -218,6 +223,56 @@ class ContentViewModel: NSObject, ObservableObject {
         alertTitle = Constants.Messages.downloadFailed
         alertMessage = message
         showAlert = true
+    }
+
+    // MARK: - Smart Magic Paste Logic
+    
+    func checkClipboard() {
+        guard let clipboardString = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !clipboardString.isEmpty else { return }
+        
+        // Don't suggest if it's the same URL already in the field or currently being downloaded
+        guard clipboardString != self.url else { return }
+        
+        let lowercased = clipboardString.lowercased()
+        var platform = ""
+        
+        if lowercased.contains("instagram.com") {
+            platform = Constants.UI.instagramName
+        } else if lowercased.contains("facebook.com") || lowercased.contains("fb.watch") {
+            platform = Constants.UI.facebookName
+        } else if lowercased.contains("tiktok.com") {
+            platform = "TikTok"
+        }
+        
+        if !platform.isEmpty {
+            withAnimation(.spring()) {
+                self.detectedURL = clipboardString
+                self.detectedPlatform = platform
+                self.showSuggestion = true
+            }
+        }
+    }
+    
+    func useDetectedURL() {
+        guard let urlToUse = detectedURL else { return }
+        
+        withAnimation(.spring()) {
+            self.url = urlToUse
+            self.showSuggestion = false
+            self.detectedURL = nil
+        }
+        
+        // Start processing immediately
+        triggerHaptic(.medium)
+        startProcess()
+    }
+    
+    func dismissSuggestion() {
+        withAnimation(.spring()) {
+            self.showSuggestion = false
+            self.detectedURL = nil
+        }
     }
 }
 

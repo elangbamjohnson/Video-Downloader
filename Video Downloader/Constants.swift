@@ -51,6 +51,10 @@ struct Constants {
         static let downloadButtonTitle = "Download Video"
         static let supportedPlatformsTitle = "Supported Platforms"
         static let okButtonTitle = "OK"
+        static let downloadNowTitle = "Download Now"
+        static let dismissTitle = "Dismiss"
+        static let linkDetectedTitle = "✨ Link Detected from %@"
+        static let suggestionDescription = "Would you like to download this video?"
         
         static let instagramName = "Instagram"
         static let instagramIcon = "camera.fill"
