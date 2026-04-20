@@ -21,36 +21,36 @@ struct ContentView: View {
                     VStack(spacing: 30) {
                         // Header Section
                         VStack(spacing: 12) {
-                            Image(systemName: "icloud.and.arrow.down")
+                            Image(systemName: Constants.UI.mainAppIcon)
                                 .font(.system(size: 60))
                                 .foregroundStyle(.blue.gradient)
                                 .padding(.top, 20)
                             
-                            Text("Video Downloader")
+                            Text(Constants.UI.appTitle)
                                 .font(.largeTitle.bold())
                             
-                            Text("Fast, High Quality, No Ads")
+                            Text(Constants.UI.appSubtitle)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
                         
                         // Input Section
                         VStack(alignment: .leading, spacing: 15) {
-                            Text("Enter Video URL")
+                            Text(Constants.UI.enterUrlTitle)
                                 .font(.headline)
                                 .padding(.leading, 4)
                             
-                            TextField("Paste link from Instagram or Facebook", text: $viewModel.url)
+                            TextField(Constants.UI.urlPlaceholder, text: $viewModel.url)
                                 .padding()
                                 .background(Color(.systemBackground))
-                                .cornerRadius(12)
-                                .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                                .cornerRadius(Constants.UI.cornerRadiusMedium)
+                                .shadow(color: .black.opacity(Constants.UI.shadowOpacity), radius: Constants.UI.shadowRadius, x: 0, y: Constants.UI.shadowY)
                                 .autocorrectionDisabled()
                                 .textInputAutocapitalization(.never)
                                 .keyboardType(.URL)
                             
                             HStack {
-                                Text("Quality Preference")
+                                Text(Constants.UI.qualityPreferenceTitle)
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                 Spacer()
@@ -76,7 +76,7 @@ struct ContentView: View {
                                     } else {
                                         HStack {
                                             Image(systemName: "arrow.down.circle.fill")
-                                            Text("Download Video")
+                                            Text(Constants.UI.downloadButtonTitle)
                                         }
                                         .fontWeight(.bold)
                                     }
@@ -85,14 +85,14 @@ struct ContentView: View {
                                 .padding(.vertical, 16)
                                 .background(viewModel.url.isEmpty || viewModel.isDownloading ? Color.gray : Color.blue)
                                 .foregroundColor(.white)
-                                .cornerRadius(14)
+                                .cornerRadius(Constants.UI.cornerRadiusLarge)
                             }
                             .disabled(viewModel.url.isEmpty || viewModel.isDownloading)
                             .padding(.horizontal)
                             
                             if viewModel.isDownloading {
                                 VStack(spacing: 8) {
-                                    ProgressView(value: viewModel.downloadProgress, total: 1.0)
+                                    ProgressView(value: viewModel.downloadProgress, total: Constants.Config.maxDownloadProgress)
                                         .progressViewStyle(.linear)
                                         .tint(.blue)
 
@@ -101,7 +101,7 @@ struct ContentView: View {
                                             .font(.caption)
                                             .foregroundStyle(.secondary)
                                         Spacer()
-                                        Text("\(Int(viewModel.downloadProgress * 100))%")
+                                        Text(String(format: Constants.UI.progressPercentFormat, Int(viewModel.downloadProgress * 100)))
                                             .font(.caption.monospacedDigit())
                                             .foregroundStyle(.secondary)
                                     }
@@ -111,25 +111,25 @@ struct ContentView: View {
                             } else if !viewModel.statusMessage.isEmpty {
                                 Text(viewModel.statusMessage)
                                     .font(.subheadline.bold())
-                                    .foregroundStyle(viewModel.statusMessage.contains("Error") ? .red : .green)
+                                    .foregroundStyle(viewModel.statusMessage.contains(Constants.UI.statusMessageErrorPrefix) ? .red : .green)
                                     .padding()
                                     .frame(maxWidth: .infinity)
-                                    .background(viewModel.statusMessage.contains("Error") ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
-                                    .cornerRadius(10)
+                                    .background(viewModel.statusMessage.contains(Constants.UI.statusMessageErrorPrefix) ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
+                                    .cornerRadius(Constants.UI.cornerRadiusSmall)
                                     .padding(.horizontal)
                             }
                         }
                         
                         // Platform Support Info
                         VStack(spacing: 15) {
-                            Text("Supported Platforms")
+                            Text(Constants.UI.supportedPlatformsTitle)
                                 .font(.caption.bold())
                                 .foregroundStyle(.secondary)
                                 .textCase(.uppercase)
                             
                             HStack(spacing: 25) {
-                                PlatformIcon(name: "Instagram", icon: "camera.fill")
-                                PlatformIcon(name: "Facebook", icon: "f.circle.fill")
+                                PlatformIcon(name: Constants.UI.instagramName, icon: Constants.UI.instagramIcon)
+                                PlatformIcon(name: Constants.UI.facebookName, icon: Constants.UI.facebookIcon)
                             }
                         }
                         .padding(.top, 20)
@@ -142,7 +142,7 @@ struct ContentView: View {
             .navigationTitle("")
             .navigationBarHidden(true)
             .alert(viewModel.alertTitle, isPresented: $viewModel.showAlert) {
-                Button("OK", role: .cancel) { }
+                Button(Constants.UI.okButtonTitle, role: .cancel) { }
             } message: {
                 Text(viewModel.alertMessage)
             }

@@ -13,7 +13,7 @@ struct Video_DownloaderApp: App {
         WindowGroup {
             ContentView()
         }
-        .backgroundTask(.urlSession("com.video.downloader.background")) {
+        .backgroundTask(.urlSession(Constants.Config.backgroundSessionIdentifier)) {
             // This allows the app to handle background events even if it was terminated
             print("DEBUG: Handling background URL session events")
         }

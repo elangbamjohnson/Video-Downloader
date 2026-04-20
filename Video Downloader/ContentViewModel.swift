@@ -18,19 +18,14 @@ class ContentViewModel: NSObject, ObservableObject {
     @Published var showAlert: Bool = false
     @Published var alertTitle: String = ""
     @Published var alertMessage: String = ""
-    @Published var selectedQuality: String = "360"
+    @Published var selectedQuality: String = Constants.UI.defaultQuality
     
-    let qualities = ["360", "480", "720", "1080", "max"]
+    let qualities = Constants.UI.qualities
     
     private let client = LoadifyClient()
     
     // Verified fallback base URLs
-    private let fallbackHosts = [
-        "https://cobalt.canine.tools",
-        "https://cobalt.meowing.de",
-        "https://cobalt.sh",
-        "https://cobalt.inst.moe"
-    ]
+    private let fallbackHosts = Constants.API.cobaltHosts
     
     private var backgroundSession: URLSession?
     private var activeDownloadURL: URL?
@@ -39,7 +34,7 @@ class ContentViewModel: NSObject, ObservableObject {
         super.init()
         setupNotifications()
         
-        let config = URLSessionConfiguration.background(withIdentifier: "com.video.downloader.background")
+        let config = URLSessionConfiguration.background(withIdentifier: Constants.Config.backgroundSessionIdentifier)
         config.sessionSendsLaunchEvents = true
         
         // --- Optimizations for Speed ---
@@ -50,7 +45,7 @@ class ContentViewModel: NSObject, ObservableObject {
         config.networkServiceType = .responsiveData
         
         // Increase concurrent connections for the background session
-        config.httpMaximumConnectionsPerHost = 6
+        config.httpMaximumConnectionsPerHost = Constants.Config.httpMaximumConnectionsPerHost
         
         // Allow all network types
         config.allowsCellularAccess = true
@@ -72,8 +67,8 @@ class ContentViewModel: NSObject, ObservableObject {
 
     private func sendCompletionNotification() {
         let content = UNMutableNotificationContent()
-        content.title = "Download Complete"
-        content.body = "Your video has been successfully saved to the Gallery."
+        content.title = Constants.Messages.notificationTitle
+        content.body = Constants.Messages.notificationBody
         content.sound = .default
 
         let request = UNNotificationRequest(
@@ -106,7 +101,7 @@ class ContentViewModel: NSObject, ObservableObject {
         
         triggerHaptic(.light)
         isDownloading = true
-        statusMessage = "Analyzing link..."
+        statusMessage = Constants.Messages.analyzingLink
         downloadProgress = 0.0
         
         Task {
@@ -115,7 +110,7 @@ class ContentViewModel: NSObject, ObservableObject {
                 try await processWithLoadify()
             } catch {
                 print("DEBUG: Engine Error: \(error)")
-                statusMessage = "Engine issue. Trying fallback..."
+                statusMessage = Constants.Messages.engineIssueFallback
                 // Fallback to manual Cobalt API calls
                 await tryFallbackAPI()
             }
@@ -124,7 +119,7 @@ class ContentViewModel: NSObject, ObservableObject {
 
     private func processWithLoadify() async throws {
         let details = try await client.fetchVideoDetails(for: url)
-        statusMessage = "Downloading from \(details.platform)..."
+        statusMessage = Constants.Messages.downloadingFrom.replacingOccurrences(of: "%s", with: details.platform)
         
         guard let videoURL = URL(string: details.video.url) else {
             throw URLError(.badURL)
@@ -135,16 +130,16 @@ class ContentViewModel: NSObject, ObservableObject {
 
     private func tryFallbackAPI() async {
         for host in fallbackHosts {
-            let paths = ["/", "/api/json"]
+            let paths = Constants.API.apiEndpoints
             for path in paths {
                 let endpoint = host + path
                 do {
                     let displayHost = host.replacingOccurrences(of: "https://", with: "")
-                    statusMessage = "Connecting to \(displayHost)..."
+                    statusMessage = Constants.Messages.connectingTo.replacingOccurrences(of: "%s", with: displayHost)
                     
                     let downloadLink = try await fetchFromCobalt(endpoint: endpoint)
                     
-                    statusMessage = "Downloading file..."
+                    statusMessage = Constants.Messages.downloadingFile
                     guard let dlURL = URL(string: downloadLink) else { continue }
                     
                     startBackgroundDownload(from: dlURL)
@@ -156,32 +151,32 @@ class ContentViewModel: NSObject, ObservableObject {
             }
         }
         
-        handleFinalError(message: "All download services are currently unavailable. Please try again later.")
+        handleFinalError(message: Constants.Messages.allServicesUnavailable)
     }
 
     private func fetchFromCobalt(endpoint: String) async throws -> String {
         guard let apiUrl = URL(string: endpoint) else { throw URLError(.badURL) }
         
         var request = URLRequest(url: apiUrl)
-        request.httpMethod = "POST"
-        request.timeoutInterval = 10
+        request.httpMethod = Constants.API.httpMethodPost
+        request.timeoutInterval = Constants.Config.requestTimeout
         
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue(Constants.API.applicationJson, forHTTPHeaderField: Constants.API.contentTypeHeader)
+        request.addValue(Constants.API.applicationJson, forHTTPHeaderField: Constants.API.acceptHeader)
         
         let body: [String: Any] = [
-            "url": url,
-            "videoQuality": selectedQuality,
-            "downloadMode": "tunnel",  // Force server-side processing for speed on iOS
-            "vCodec": "h264",          // Use efficient codec
-            "aFormat": "mp3",          // Stable audio format
-            "filenameStyle": "pretty"
+            Constants.API.bodyKeyUrl: url,
+            Constants.API.bodyKeyVideoQuality: selectedQuality,
+            Constants.API.bodyKeyDownloadMode: Constants.API.downloadModeTunnel,
+            Constants.API.bodyKeyVCodec: Constants.API.vCodecH264,
+            Constants.API.bodyKeyAFormat: Constants.API.aFormatMp3,
+            Constants.API.bodyKeyFilenameStyle: Constants.API.filenameStylePretty
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == Constants.Config.defaultStatusCode else {
             throw URLError(.badServerResponse)
         }
         
@@ -189,8 +184,8 @@ class ContentViewModel: NSObject, ObservableObject {
         
         if let downloadUrl = apiResponse.url, !downloadUrl.isEmpty { return downloadUrl }
         
-        if let status = apiResponse.status, status == "error" {
-            throw NSError(domain: "Cobalt", code: 400, userInfo: [NSLocalizedDescriptionKey: apiResponse.text ?? "Unknown API Error"])
+        if let status = apiResponse.status, status == Constants.API.statusError {
+            throw NSError(domain: Constants.Config.errorDomain, code: Constants.Config.errorCode, userInfo: [NSLocalizedDescriptionKey: apiResponse.text ?? "Unknown API Error"])
         }
         
         throw URLError(.fileDoesNotExist)
@@ -203,11 +198,11 @@ class ContentViewModel: NSObject, ObservableObject {
     }
 
     func finalizeDownload(localURL: URL) async throws {
-        statusMessage = "Saving to Gallery..."
+        statusMessage = Constants.Messages.savingToGallery
         try await PHPhotoLibrary.shared().performChanges {
             PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
         }
-        statusMessage = "Successfully saved!"
+        statusMessage = Constants.Messages.successfullySaved
         triggerNotificationHaptic(.success)
         isDownloading = false
         url = ""
@@ -217,10 +212,10 @@ class ContentViewModel: NSObject, ObservableObject {
     }
 
     private func handleFinalError(message: String) {
-        statusMessage = "Error: Process Failed"
+        statusMessage = Constants.Messages.processFailed
         triggerNotificationHaptic(.error)
         isDownloading = false
-        alertTitle = "Download Failed"
+        alertTitle = Constants.Messages.downloadFailed
         alertMessage = message
         showAlert = true
     }
@@ -247,17 +242,17 @@ extension ContentViewModel: URLSessionDownloadDelegate {
             try fileManager.moveItem(at: location, to: destinationURL)
             
             Task { @MainActor in
-                self.downloadProgress = 1.0
+                self.downloadProgress = Constants.Config.maxDownloadProgress
                 do {
                     try await self.finalizeDownload(localURL: destinationURL)
                     self.sendCompletionNotification() // Show completion banner
                 } catch {
-                    self.handleFinalError(message: "Failed to save video: \(error.localizedDescription)")
+                    self.handleFinalError(message: String(format: Constants.Messages.failedToSaveVideo, error.localizedDescription))
                 }
             }
         } catch {
             Task { @MainActor in
-                self.handleFinalError(message: "Failed to process downloaded file.")
+                self.handleFinalError(message: Constants.Messages.failedToProcessFile)
             }
         }
     }
