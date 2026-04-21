@@ -1,3 +1,10 @@
+//
+//  Constants.swift
+//  Video Downloader
+//
+//  Created by Johnson on 17/04/26.
+//
+
 import Foundation
 import SwiftUI
 
@@ -43,18 +50,18 @@ struct Constants {
     }
     
     struct UI {
-        static let appTitle = "Video Downloader"
-        static let appSubtitle = "Fast, High Quality, No Ads"
-        static let urlPlaceholder = "Paste link from Instagram or Facebook"
-        static let enterUrlTitle = "Enter Video URL"
-        static let qualityPreferenceTitle = "Quality Preference"
-        static let downloadButtonTitle = "Download Video"
-        static let supportedPlatformsTitle = "Supported Platforms"
-        static let okButtonTitle = "OK"
-        static let downloadNowTitle = "Download Now"
-        static let dismissTitle = "Dismiss"
-        static let linkDetectedTitle = "✨ Link Detected from %@"
-        static let suggestionDescription = "Would you like to download this video?"
+        static let appTitle: LocalizedStringResource = "Video Downloader"
+        static let appSubtitle: LocalizedStringResource = "Fast, High Quality, No Ads"
+        static let urlPlaceholder: LocalizedStringResource = "Paste link from Instagram or Facebook"
+        static let enterUrlTitle: LocalizedStringResource = "Enter Video URL"
+        static let qualityPreferenceTitle: LocalizedStringResource = "Quality Preference"
+        static let downloadButtonTitle: LocalizedStringResource = "Download Video"
+        static let supportedPlatformsTitle: LocalizedStringResource = "Supported Platforms"
+        static let okButtonTitle: LocalizedStringResource = "OK"
+        static let downloadNowTitle: LocalizedStringResource = "Download Now"
+        static let dismissTitle: LocalizedStringResource = "Dismiss"
+        static let linkDetectedTitle: LocalizedStringResource = "✨ Link Detected from %@"
+        static let suggestionDescription: LocalizedStringResource = "Would you like to download this video?"
         
         static let instagramName = "Instagram"
         static let instagramIcon = "camera.fill"
@@ -78,19 +85,19 @@ struct Constants {
     }
     
     struct Messages {
-        static let notificationTitle = "Download Complete"
-        static let notificationBody = "Your video has been successfully saved to the Gallery."
-        static let analyzingLink = "Analyzing link..."
-        static let engineIssueFallback = "Engine issue. Trying fallback..."
-        static let downloadingFrom = "Downloading from %s..."
-        static let connectingTo = "Connecting to %s..."
-        static let downloadingFile = "Downloading file..."
-        static let allServicesUnavailable = "All download services are currently unavailable. Please try again later."
-        static let savingToGallery = "Saving to Gallery..."
-        static let successfullySaved = "Successfully saved!"
-        static let processFailed = "Error: Process Failed"
-        static let downloadFailed = "Download Failed"
-        static let failedToSaveVideo = "Failed to save video: %@"
-        static let failedToProcessFile = "Failed to process downloaded file."
+        static let notificationTitle: LocalizedStringResource = "Download Complete"
+        static let notificationBody: LocalizedStringResource = "Your video has been successfully saved to the Gallery."
+        static let analyzingLink: LocalizedStringResource = "Analyzing link..."
+        static let engineIssueFallback: LocalizedStringResource = "Engine issue. Trying fallback..."
+        static let downloadingFrom: LocalizedStringResource = "Downloading from %@..."
+        static let connectingTo: LocalizedStringResource = "Connecting to %@..."
+        static let downloadingFile: LocalizedStringResource = "Downloading file..."
+        static let allServicesUnavailable: LocalizedStringResource = "All download services are currently unavailable. Please try again later."
+        static let savingToGallery: LocalizedStringResource = "Saving to Gallery..."
+        static let successfullySaved: LocalizedStringResource = "Successfully saved!"
+        static let processFailed: LocalizedStringResource = "Error: Process Failed"
+        static let downloadFailed: LocalizedStringResource = "Download Failed"
+        static let failedToSaveVideo: LocalizedStringResource = "Failed to save video: %@"
+        static let failedToProcessFile: LocalizedStringResource = "Failed to process downloaded file."
     }
 }

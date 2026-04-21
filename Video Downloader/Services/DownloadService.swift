@@ -1,3 +1,10 @@
+//
+//  DownloadService.swift
+//  Video Downloader
+//
+//  Created by Johnson on 17/04/26.
+//
+
 import Foundation
 import LoadifyEngine
 
@@ -32,13 +39,15 @@ class DownloadService: NSObject {
     }
     
     func startDownload(url: String, quality: String) async {
-        delegate?.downloadService(self, didUpdateStatus: Constants.Messages.analyzingLink)
+        delegate?.downloadService(self, didUpdateStatus: String(localized: Constants.Messages.analyzingLink))
         delegate?.downloadService(self, didUpdateProgress: 0.0)
         
         do {
             // Try LoadifyEngine first
             let details = try await client.fetchVideoDetails(for: url)
-            delegate?.downloadService(self, didUpdateStatus: Constants.Messages.downloadingFrom.replacingOccurrences(of: "%s", with: details.platform.rawValue))
+            let status = String(localized: Constants.Messages.downloadingFrom)
+            let formattedStatus = String(format: status, details.platform.rawValue)
+            delegate?.downloadService(self, didUpdateStatus: formattedStatus)
             
             guard let videoURL = URL(string: details.video.url) else {
                 throw URLError(.badURL)
@@ -47,7 +56,7 @@ class DownloadService: NSObject {
             startBackgroundDownload(from: videoURL)
         } catch {
             print("DEBUG: Engine Error: \(error)")
-            delegate?.downloadService(self, didUpdateStatus: Constants.Messages.engineIssueFallback)
+            delegate?.downloadService(self, didUpdateStatus: String(localized: Constants.Messages.engineIssueFallback))
             await tryFallbackAPI(url: url, quality: quality)
         }
     }
@@ -59,11 +68,13 @@ class DownloadService: NSObject {
                 let endpoint = host + path
                 do {
                     let displayHost = host.replacingOccurrences(of: "https://", with: "")
-                    delegate?.downloadService(self, didUpdateStatus: Constants.Messages.connectingTo.replacingOccurrences(of: "%s", with: displayHost))
+                    let status = String(localized: Constants.Messages.connectingTo)
+                    let formattedStatus = String(format: status, displayHost)
+                    delegate?.downloadService(self, didUpdateStatus: formattedStatus)
                     
                     let downloadLink = try await fetchFromCobalt(endpoint: endpoint, videoUrl: url, quality: quality)
                     
-                    delegate?.downloadService(self, didUpdateStatus: Constants.Messages.downloadingFile)
+                    delegate?.downloadService(self, didUpdateStatus: String(localized: Constants.Messages.downloadingFile))
                     guard let dlURL = URL(string: downloadLink) else { continue }
                     
                     startBackgroundDownload(from: dlURL)
@@ -75,7 +86,7 @@ class DownloadService: NSObject {
             }
         }
         
-        delegate?.downloadService(self, didFailWithError: NSError(domain: "DownloadService", code: -1, userInfo: [NSLocalizedDescriptionKey: Constants.Messages.allServicesUnavailable]))
+        delegate?.downloadService(self, didFailWithError: NSError(domain: "DownloadService", code: -1, userInfo: [NSLocalizedDescriptionKey: String(localized: Constants.Messages.allServicesUnavailable)]))
     }
     
     private func fetchFromCobalt(endpoint: String, videoUrl: String, quality: String) async throws -> String {

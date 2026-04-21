@@ -166,7 +166,7 @@ struct ContentView: View {
         VStack(spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(String(format: Constants.UI.linkDetectedTitle, viewModel.detectedPlatform))
+                    Text(viewModel.detectedPlatform)
                         .font(.headline)
                     Text(Constants.UI.suggestionDescription)
                         .font(.caption)
