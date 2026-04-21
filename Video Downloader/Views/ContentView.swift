@@ -8,7 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel = ContentViewModel()
+    @StateObject private var viewModel: ContentViewModel
+
+    @MainActor
+    init(viewModel: ContentViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
 
     var body: some View {
         NavigationStack {
@@ -226,5 +231,5 @@ struct PlatformIcon: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: ContentViewModel(downloadService: DownloadService()))
 }

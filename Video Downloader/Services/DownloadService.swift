@@ -15,7 +15,12 @@ protocol DownloadServiceDelegate: AnyObject {
     func downloadService(_ service: DownloadService, didUpdateStatus status: String)
 }
 
-class DownloadService: NSObject {
+protocol DownloadServiceProtocol: AnyObject {
+    var delegate: DownloadServiceDelegate? { get set }
+    func startDownload(url: String, quality: String) async
+}
+
+class DownloadService: NSObject, DownloadServiceProtocol {
     
     weak var delegate: DownloadServiceDelegate?
     
@@ -23,6 +28,7 @@ class DownloadService: NSObject {
     private let fallbackHosts = Constants.API.cobaltHosts
     private var backgroundSession: URLSession?
     
+    @MainActor
     override init() {
         super.init()
         let config = URLSessionConfiguration.background(withIdentifier: Constants.Config.backgroundSessionIdentifier)

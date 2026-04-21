@@ -29,11 +29,13 @@ class ContentViewModel: NSObject, ObservableObject {
     
     let qualities = Constants.UI.qualities
     
-    private let downloadService = DownloadService()
+    private let downloadService: DownloadServiceProtocol
 
-    override init() {
+    @MainActor
+    init(downloadService: DownloadServiceProtocol) {
+        self.downloadService = downloadService
         super.init()
-        downloadService.delegate = self
+        self.downloadService.delegate = self
         setupNotifications()
     }
 

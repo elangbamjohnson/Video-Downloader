@@ -11,7 +11,7 @@ import SwiftUI
 struct Video_DownloaderApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(viewModel: ContentViewModel(downloadService: DownloadService()))
         }
         .backgroundTask(.urlSession(Constants.Config.backgroundSessionIdentifier)) {
             // This allows the app to handle background events even if it was terminated
