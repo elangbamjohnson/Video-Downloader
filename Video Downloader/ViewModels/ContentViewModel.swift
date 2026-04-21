@@ -22,6 +22,10 @@ class ContentViewModel: NSObject, ObservableObject {
     @Published var alertMessage: String = ""
     @Published var selectedQuality: String = Constants.UI.defaultQuality
     
+    var isUrlValid: Bool {
+        isValidUrl(url)
+    }
+    
     // Smart Suggestion State
     @Published var detectedURL: String? = nil
     @Published var detectedPlatform: String = ""
@@ -81,10 +85,15 @@ class ContentViewModel: NSObject, ObservableObject {
     }
 
     func startProcess() {
-        guard !url.isEmpty else { return }
+        print("DEBUG: startProcess called with URL: \(url)")
+        guard !url.isEmpty else { 
+            print("DEBUG: URL is empty, returning")
+            return 
+        }
         
         triggerHaptic(.light)
         isDownloading = true
+        print("DEBUG: isDownloading set to true")
         
         Task {
             await downloadService.startDownload(url: url, quality: selectedQuality)
@@ -114,11 +123,20 @@ class ContentViewModel: NSObject, ObservableObject {
 
     // MARK: - Smart Magic Paste Logic
     
-    func checkClipboard() {
-        guard let clipboardString = UIPasteboard.general.string?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !clipboardString.isEmpty else { return }
+    func checkClipboard(explicitString: String? = nil) {
+        let stringToCheck = explicitString ?? UIPasteboard.general.string
+        print("DEBUG: Checking string: \(String(describing: stringToCheck))")
         
-        guard clipboardString != self.url else { return }
+        guard let clipboardString = stringToCheck?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !clipboardString.isEmpty else { 
+            print("DEBUG: Clipboard string is empty")
+            return 
+        }
+        
+        guard clipboardString != self.url else { 
+            print("DEBUG: URL is same as current")
+            return 
+        }
         
         let lowercased = clipboardString.lowercased()
         var platform = ""
@@ -129,12 +147,13 @@ class ContentViewModel: NSObject, ObservableObject {
             platform = Constants.UI.facebookName
         }
         
+        print("DEBUG: Detected platform: \(platform)")
+        
         if !platform.isEmpty {
-            withAnimation(.spring()) {
-                self.detectedURL = clipboardString
-                self.detectedPlatform = String(format: String(localized: Constants.UI.linkDetectedTitle), platform)
-                self.showSuggestion = true
-            }
+            self.detectedURL = clipboardString
+            self.detectedPlatform = String(format: String(localized: Constants.UI.linkDetectedTitle), platform)
+            self.showSuggestion = true
+            print("DEBUG: showSuggestion set to true")
         }
     }
     
@@ -157,17 +176,27 @@ class ContentViewModel: NSObject, ObservableObject {
             self.detectedURL = nil
         }
     }
+
+    private func isValidUrl(_ urlString: String) -> Bool {
+        let cleanUrl = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanUrl.isEmpty else { return false }
+        
+        let instagramRange = cleanUrl.range(of: Constants.Config.instagramRegex, options: .regularExpression)
+        let facebookRange = cleanUrl.range(of: Constants.Config.facebookRegex, options: .regularExpression)
+        
+        return instagramRange != nil || facebookRange != nil
+    }
 }
 
 // MARK: - DownloadServiceDelegate
 extension ContentViewModel: DownloadServiceDelegate {
-    nonisolated func downloadService(_ service: DownloadService, didUpdateProgress progress: Double) {
+    nonisolated func downloadService(_ service: DownloadServiceProtocol, didUpdateProgress progress: Double) {
         Task { @MainActor in
             self.downloadProgress = progress
         }
     }
     
-    nonisolated func downloadService(_ service: DownloadService, didFinishWithLocation location: URL) {
+    nonisolated func downloadService(_ service: DownloadServiceProtocol, didFinishWithLocation location: URL) {
         Task { @MainActor in
             do {
                 try await self.finalizeDownload(localURL: location)
@@ -180,13 +209,13 @@ extension ContentViewModel: DownloadServiceDelegate {
         }
     }
     
-    nonisolated func downloadService(_ service: DownloadService, didFailWithError error: Error) {
+    nonisolated func downloadService(_ service: DownloadServiceProtocol, didFailWithError error: Error) {
         Task { @MainActor in
             self.handleFinalError(message: error.localizedDescription)
         }
     }
     
-    nonisolated func downloadService(_ service: DownloadService, didUpdateStatus status: String) {
+    nonisolated func downloadService(_ service: DownloadServiceProtocol, didUpdateStatus status: String) {
         Task { @MainActor in
             self.statusMessage = status
         }

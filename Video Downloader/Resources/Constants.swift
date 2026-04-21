@@ -18,6 +18,10 @@ struct Constants {
         static let defaultStatusCode = 200
         static let errorCode = 400
         static let errorDomain = "Cobalt"
+        
+        // Validation Regex
+        static let instagramRegex = #"(https?://)?(www\.)?instagram\.com/.*"#
+        static let facebookRegex = #"(https?://)?(www\.)?(facebook\.com|fb\.watch)/.*"#
     }
     
     struct API {

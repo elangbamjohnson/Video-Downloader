@@ -11,6 +11,16 @@
 		2C354B072F934D8A006EC5C0 /* LoadifyEngine.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		2C1EF7422F9798C600E5269D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2C354AD12F920594006EC5C0 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2C354AD82F920594006EC5C0;
+			remoteInfo = "Video Downloader";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		2C354B082F934D8A006EC5C0 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -26,11 +36,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2C1EF73E2F9798C600E5269D /* Video DownloaderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Video DownloaderTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C354AD92F920595006EC5C0 /* Video Downloader.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Video Downloader.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = LoadifyEngine.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		2C1EF73F2F9798C600E5269D /* Video DownloaderTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Video DownloaderTests";
+			sourceTree = "<group>";
+		};
 		2C354ADB2F920595006EC5C0 /* Video Downloader */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Video Downloader";
@@ -39,6 +55,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		2C1EF73B2F9798C600E5269D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C354AD62F920594006EC5C0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -53,9 +76,10 @@
 		2C354AD02F920594006EC5C0 = {
 			isa = PBXGroup;
 			children = (
-				2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */,
 				2C354ADB2F920595006EC5C0 /* Video Downloader */,
+				2C1EF73F2F9798C600E5269D /* Video DownloaderTests */,
 				2C354ADA2F920595006EC5C0 /* Products */,
+				2C354B042F934D3D006EC5C0 /* LoadifyEngine.xcframework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -63,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				2C354AD92F920595006EC5C0 /* Video Downloader.app */,
+				2C1EF73E2F9798C600E5269D /* Video DownloaderTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2C1EF73D2F9798C600E5269D /* Video DownloaderTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2C1EF7442F9798C600E5269D /* Build configuration list for PBXNativeTarget "Video DownloaderTests" */;
+			buildPhases = (
+				2C1EF73A2F9798C600E5269D /* Sources */,
+				2C1EF73B2F9798C600E5269D /* Frameworks */,
+				2C1EF73C2F9798C600E5269D /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2C1EF7432F9798C600E5269D /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				2C1EF73F2F9798C600E5269D /* Video DownloaderTests */,
+			);
+			name = "Video DownloaderTests";
+			packageProductDependencies = (
+			);
+			productName = "Video DownloaderTests";
+			productReference = 2C1EF73E2F9798C600E5269D /* Video DownloaderTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		2C354AD82F920594006EC5C0 /* Video Downloader */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2C354AE42F920598006EC5C0 /* Build configuration list for PBXNativeTarget "Video Downloader" */;
@@ -103,6 +151,10 @@
 				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					2C1EF73D2F9798C600E5269D = {
+						CreatedOnToolsVersion = 26.4;
+						TestTargetID = 2C354AD82F920594006EC5C0;
+					};
 					2C354AD82F920594006EC5C0 = {
 						CreatedOnToolsVersion = 26.4;
 					};
@@ -126,11 +178,19 @@
 			projectRoot = "";
 			targets = (
 				2C354AD82F920594006EC5C0 /* Video Downloader */,
+				2C1EF73D2F9798C600E5269D /* Video DownloaderTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		2C1EF73C2F9798C600E5269D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C354AD72F920594006EC5C0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -141,6 +201,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		2C1EF73A2F9798C600E5269D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2C354AD52F920594006EC5C0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -150,7 +217,57 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		2C1EF7432F9798C600E5269D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2C354AD82F920594006EC5C0 /* Video Downloader */;
+			targetProxy = 2C1EF7422F9798C600E5269D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		2C1EF7452F9798C600E5269D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A2CQ49GHDC;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.airwatch.airwatchintegration.Video-DownloaderTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Video Downloader.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Video Downloader";
+			};
+			name = Debug;
+		};
+		2C1EF7462F9798C600E5269D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A2CQ49GHDC;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.airwatch.airwatchintegration.Video-DownloaderTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Video Downloader.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Video Downloader";
+			};
+			name = Release;
+		};
 		2C354AE22F920598006EC5C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -281,7 +398,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-
 				DEVELOPMENT_TEAM = A2CQ49GHDC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -296,9 +412,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1.0;
-
 				PRODUCT_BUNDLE_IDENTIFIER = com.elangbamjohnson.VideoDownloader;
-
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -317,7 +431,6 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
-
 				DEVELOPMENT_TEAM = A2CQ49GHDC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -332,9 +445,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.1.0;
-
 				PRODUCT_BUNDLE_IDENTIFIER = com.elangbamjohnson.VideoDownloader;
-
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -349,6 +460,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		2C1EF7442F9798C600E5269D /* Build configuration list for PBXNativeTarget "Video DownloaderTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2C1EF7452F9798C600E5269D /* Debug */,
+				2C1EF7462F9798C600E5269D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		2C354AD42F920594006EC5C0 /* Build configuration list for PBXProject "Video Downloader" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

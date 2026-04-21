@@ -9,10 +9,10 @@ import Foundation
 import LoadifyEngine
 
 protocol DownloadServiceDelegate: AnyObject {
-    func downloadService(_ service: DownloadService, didUpdateProgress progress: Double)
-    func downloadService(_ service: DownloadService, didFinishWithLocation location: URL)
-    func downloadService(_ service: DownloadService, didFailWithError error: Error)
-    func downloadService(_ service: DownloadService, didUpdateStatus status: String)
+    func downloadService(_ service: DownloadServiceProtocol, didUpdateProgress progress: Double)
+    func downloadService(_ service: DownloadServiceProtocol, didFinishWithLocation location: URL)
+    func downloadService(_ service: DownloadServiceProtocol, didFailWithError error: Error)
+    func downloadService(_ service: DownloadServiceProtocol, didUpdateStatus status: String)
 }
 
 protocol DownloadServiceProtocol: AnyObject {
