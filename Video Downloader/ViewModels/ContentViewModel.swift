@@ -2,6 +2,9 @@
 //  ContentViewModel.swift
 //  Video Downloader
 //
+//  Created by Johnson on 17/04/26.
+//
+
 
 import SwiftUI
 import Photos
@@ -46,8 +49,8 @@ class ContentViewModel: NSObject, ObservableObject {
 
     private func sendCompletionNotification() {
         let content = UNMutableNotificationContent()
-        content.title = Constants.Messages.notificationTitle
-        content.body = Constants.Messages.notificationBody
+        content.title = String(localized: Constants.Messages.notificationTitle)
+        content.body = String(localized: Constants.Messages.notificationBody)
         content.sound = .default
 
         let request = UNNotificationRequest(
@@ -87,11 +90,11 @@ class ContentViewModel: NSObject, ObservableObject {
     }
 
     func finalizeDownload(localURL: URL) async throws {
-        statusMessage = Constants.Messages.savingToGallery
+        statusMessage = String(localized: Constants.Messages.savingToGallery)
         try await PHPhotoLibrary.shared().performChanges {
             PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
         }
-        statusMessage = Constants.Messages.successfullySaved
+        statusMessage = String(localized: Constants.Messages.successfullySaved)
         triggerNotificationHaptic(.success)
         isDownloading = false
         url = ""
@@ -99,10 +102,10 @@ class ContentViewModel: NSObject, ObservableObject {
     }
 
     private func handleFinalError(message: String) {
-        statusMessage = Constants.Messages.processFailed
+        statusMessage = String(localized: Constants.Messages.processFailed)
         triggerNotificationHaptic(.error)
         isDownloading = false
-        alertTitle = Constants.Messages.downloadFailed
+        alertTitle = String(localized: Constants.Messages.downloadFailed)
         alertMessage = message
         showAlert = true
     }
@@ -127,7 +130,7 @@ class ContentViewModel: NSObject, ObservableObject {
         if !platform.isEmpty {
             withAnimation(.spring()) {
                 self.detectedURL = clipboardString
-                self.detectedPlatform = platform
+                self.detectedPlatform = String(format: String(localized: Constants.UI.linkDetectedTitle), platform)
                 self.showSuggestion = true
             }
         }
@@ -168,7 +171,9 @@ extension ContentViewModel: DownloadServiceDelegate {
                 try await self.finalizeDownload(localURL: location)
                 self.sendCompletionNotification()
             } catch {
-                self.handleFinalError(message: String(format: Constants.Messages.failedToSaveVideo, error.localizedDescription))
+                let errorFormat = String(localized: Constants.Messages.failedToSaveVideo)
+                let localizedError = String(format: errorFormat, error.localizedDescription)
+                self.handleFinalError(message: localizedError)
             }
         }
     }
