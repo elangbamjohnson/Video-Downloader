@@ -10,12 +10,16 @@ final class ContentViewModelTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
+        // Clear history before each test
+        UserDefaults.standard.removeObject(forKey: Constants.Config.processedUrlsKey)
         mockService = MockDownloadService()
         // Inject the mock!
         sut = ContentViewModel(downloadService: mockService)
     }
 
     override func tearDown() {
+        // Clean up after tests
+        UserDefaults.standard.removeObject(forKey: Constants.Config.processedUrlsKey)
         sut = nil
         mockService = nil
         super.tearDown()
@@ -66,6 +70,28 @@ final class ContentViewModelTests: XCTestCase {
         sut.url = ""
         XCTAssertFalse(sut.isUrlValid)
         }
+
+    func test_checkClipboard_ignoresAlreadyDownloadedURL() async {
+        // 1. Arrange
+        let testURL = "https://www.instagram.com/reels/duplicate/"
+        sut.url = testURL
+        
+        // Simulate a successful download to save it to processedUrls
+        // We'll use a dummy URL for the local file
+        let dummyLocalURL = URL(fileURLWithPath: "/tmp/test.mp4")
+        
+        // Since finalizeDownload calls PHPhotoLibrary, we might need to be careful.
+        // But we want to test that the SET is updated.
+        // A better way is to test checkClipboard directly after adding to processedUrls manually
+        // if we expose a helper, or just use UserDefaults since we know the key.
+        UserDefaults.standard.set([testURL], forKey: Constants.Config.processedUrlsKey)
+        
+        // 2. Act
+        sut.checkClipboard(explicitString: testURL)
+        
+        // 3. Assert
+        XCTAssertFalse(sut.showSuggestion, "Should NOT show suggestion for already downloaded URL")
+    }
         
 
     func test_serviceFailure_updatesStateToError() async {

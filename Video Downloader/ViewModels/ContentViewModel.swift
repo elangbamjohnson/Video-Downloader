@@ -31,6 +31,16 @@ class ContentViewModel: NSObject, ObservableObject {
     @Published var detectedPlatform: String = ""
     @Published var showSuggestion: Bool = false
     
+    private var processedUrls: Set<String> {
+        get {
+            let array = UserDefaults.standard.stringArray(forKey: Constants.Config.processedUrlsKey) ?? []
+            return Set(array)
+        }
+        set {
+            UserDefaults.standard.set(Array(newValue), forKey: Constants.Config.processedUrlsKey)
+        }
+    }
+    
     let qualities = Constants.UI.qualities
     
     private let downloadService: DownloadServiceProtocol
@@ -107,6 +117,7 @@ class ContentViewModel: NSObject, ObservableObject {
         }
         statusMessage = String(localized: Constants.Messages.successfullySaved)
         triggerNotificationHaptic(.success)
+        processedUrls.insert(url)
         isDownloading = false
         url = ""
         try? FileManager.default.removeItem(at: localURL)
@@ -136,6 +147,11 @@ class ContentViewModel: NSObject, ObservableObject {
         guard clipboardString != self.url else { 
             print("DEBUG: URL is same as current")
             return 
+        }
+        
+        guard !processedUrls.contains(clipboardString) else {
+            print("DEBUG: URL already processed")
+            return
         }
         
         let lowercased = clipboardString.lowercased()

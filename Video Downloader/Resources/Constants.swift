@@ -19,6 +19,9 @@ struct Constants {
         static let errorCode = 400
         static let errorDomain = "Cobalt"
         
+        // Persistence
+        static let processedUrlsKey = "processed_urls"
+        
         // Validation Regex
         static let instagramRegex = #"(https?://)?(www\.)?instagram\.com/.*"#
         static let facebookRegex = #"(https?://)?(www\.)?(facebook\.com|fb\.watch)/.*"#
