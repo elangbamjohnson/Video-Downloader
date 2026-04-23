@@ -8,7 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel = ContentViewModel()
+    @StateObject private var viewModel: ContentViewModel
+
+    @MainActor
+    init(viewModel: ContentViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+    }
 
     var body: some View {
         NavigationStack {
@@ -83,11 +88,11 @@ struct ContentView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(viewModel.url.isEmpty || viewModel.isDownloading ? Color.gray : Color.blue)
+                                .background(!viewModel.isUrlValid || viewModel.isDownloading ? Color.gray : Color.blue)
                                 .foregroundColor(.white)
                                 .cornerRadius(Constants.UI.cornerRadiusLarge)
                             }
-                            .disabled(viewModel.url.isEmpty || viewModel.isDownloading)
+                            .disabled(!viewModel.isUrlValid || viewModel.isDownloading)
                             .padding(.horizontal)
                             
                             if viewModel.isDownloading {
@@ -226,5 +231,5 @@ struct PlatformIcon: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(viewModel: ContentViewModel(downloadService: DownloadService()))
 }
