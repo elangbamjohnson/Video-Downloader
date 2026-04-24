@@ -21,6 +21,7 @@ struct Constants {
         
         // Persistence
         static let processedUrlsKey = "processed_urls"
+        static let albumName = "Video Downloader"
         
         // Validation Regex
         static let instagramRegex = #"(https?://)?(www\.)?instagram\.com/.*"#

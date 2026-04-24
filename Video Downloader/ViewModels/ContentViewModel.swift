@@ -12,24 +12,25 @@ import Combine
 import UserNotifications
 
 @MainActor
-class ContentViewModel: NSObject, ObservableObject {
-    @Published var url: String = ""
-    @Published var isDownloading: Bool = false
-    @Published var downloadProgress: Double = 0.0
-    @Published var statusMessage: String = ""
-    @Published var showAlert: Bool = false
-    @Published var alertTitle: String = ""
-    @Published var alertMessage: String = ""
-    @Published var selectedQuality: String = Constants.UI.defaultQuality
+@Observable
+class ContentViewModel: NSObject {
+    var url: String = ""
+    var isDownloading: Bool = false
+    var downloadProgress: Double = 0.0
+    var statusMessage: String = ""
+    var showAlert: Bool = false
+    var alertTitle: String = ""
+    var alertMessage: String = ""
+    var selectedQuality: String = Constants.UI.defaultQuality
     
     var isUrlValid: Bool {
         isValidUrl(url)
     }
     
     // Smart Suggestion State
-    @Published var detectedURL: String? = nil
-    @Published var detectedPlatform: String = ""
-    @Published var showSuggestion: Bool = false
+    var detectedURL: String? = nil
+    var detectedPlatform: String = ""
+    var showSuggestion: Bool = false
     
     private var processedUrls: Set<String> {
         get {
@@ -112,9 +113,30 @@ class ContentViewModel: NSObject, ObservableObject {
 
     func finalizeDownload(localURL: URL) async throws {
         statusMessage = String(localized: Constants.Messages.savingToGallery)
+        
         try await PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
+            // 1. Create the asset from the local URL
+            let assetRequest = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
+            let placeholder = assetRequest?.placeholderForCreatedAsset
+            
+            // 2. Find or request creation of the album
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.predicate = NSPredicate(format: "title = %@", Constants.Config.albumName)
+            let collection = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: fetchOptions)
+            
+            let albumRequest: PHAssetCollectionChangeRequest
+            if let existingAlbum = collection.firstObject {
+                albumRequest = PHAssetCollectionChangeRequest(for: existingAlbum)!
+            } else {
+                albumRequest = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: Constants.Config.albumName)
+            }
+            
+            // 3. Add the asset to the album
+            if let placeholder = placeholder {
+                albumRequest.addAssets([placeholder] as NSArray)
+            }
         }
+        
         statusMessage = String(localized: Constants.Messages.successfullySaved)
         triggerNotificationHaptic(.success)
         processedUrls.insert(url)

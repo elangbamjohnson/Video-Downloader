@@ -8,14 +8,15 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel: ContentViewModel
+    var viewModel: ContentViewModel
 
     @MainActor
     init(viewModel: ContentViewModel) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
     }
 
     var body: some View {
+        @Bindable var viewModel = viewModel
         NavigationStack {
             ZStack {
                 // Background Gradient
