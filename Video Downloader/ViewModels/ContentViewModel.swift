@@ -113,9 +113,30 @@ class ContentViewModel: NSObject {
 
     func finalizeDownload(localURL: URL) async throws {
         statusMessage = String(localized: Constants.Messages.savingToGallery)
+        
         try await PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
+            // 1. Create the asset from the local URL
+            let assetRequest = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: localURL)
+            let placeholder = assetRequest?.placeholderForCreatedAsset
+            
+            // 2. Find or request creation of the album
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.predicate = NSPredicate(format: "title = %@", Constants.Config.albumName)
+            let collection = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: fetchOptions)
+            
+            let albumRequest: PHAssetCollectionChangeRequest
+            if let existingAlbum = collection.firstObject {
+                albumRequest = PHAssetCollectionChangeRequest(for: existingAlbum)!
+            } else {
+                albumRequest = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: Constants.Config.albumName)
+            }
+            
+            // 3. Add the asset to the album
+            if let placeholder = placeholder {
+                albumRequest.addAssets([placeholder] as NSArray)
+            }
         }
+        
         statusMessage = String(localized: Constants.Messages.successfullySaved)
         triggerNotificationHaptic(.success)
         processedUrls.insert(url)

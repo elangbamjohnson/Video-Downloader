@@ -31,10 +31,18 @@ class LibraryViewModel: NSObject, PHPhotoLibraryChangeObserver {
     }
     
     func fetchAssets() {
-        let options = PHFetchOptions()
-        options.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
-        options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        self.assets = PHAsset.fetchAssets(with: options)
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.predicate = NSPredicate(format: "title = %@", Constants.Config.albumName)
+        let collection = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: fetchOptions)
+        
+        if let firstCollection = collection.firstObject {
+            let options = PHFetchOptions()
+            options.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
+            options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            self.assets = PHAsset.fetchAssets(in: firstCollection, options: options)
+        } else {
+            self.assets = nil
+        }
     }
     
     func photoLibraryDidChange(_ changeInstance: PHChange) {
