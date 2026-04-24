@@ -12,24 +12,25 @@ import Combine
 import UserNotifications
 
 @MainActor
-class ContentViewModel: NSObject, ObservableObject {
-    @Published var url: String = ""
-    @Published var isDownloading: Bool = false
-    @Published var downloadProgress: Double = 0.0
-    @Published var statusMessage: String = ""
-    @Published var showAlert: Bool = false
-    @Published var alertTitle: String = ""
-    @Published var alertMessage: String = ""
-    @Published var selectedQuality: String = Constants.UI.defaultQuality
+@Observable
+class ContentViewModel: NSObject {
+    var url: String = ""
+    var isDownloading: Bool = false
+    var downloadProgress: Double = 0.0
+    var statusMessage: String = ""
+    var showAlert: Bool = false
+    var alertTitle: String = ""
+    var alertMessage: String = ""
+    var selectedQuality: String = Constants.UI.defaultQuality
     
     var isUrlValid: Bool {
         isValidUrl(url)
     }
     
     // Smart Suggestion State
-    @Published var detectedURL: String? = nil
-    @Published var detectedPlatform: String = ""
-    @Published var showSuggestion: Bool = false
+    var detectedURL: String? = nil
+    var detectedPlatform: String = ""
+    var showSuggestion: Bool = false
     
     private var processedUrls: Set<String> {
         get {

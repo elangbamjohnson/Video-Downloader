@@ -75,6 +75,9 @@
         }
       }
     },
+    "Download" : {
+
+    },
     "Download Complete" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -279,6 +282,12 @@
         }
       }
     },
+    "Library" : {
+
+    },
+    "No Videos" : {
+
+    },
     "OK" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -417,6 +426,9 @@
           }
         }
       }
+    },
+    "Your downloaded videos will appear here." : {
+
     },
     "Your video has been successfully saved to the Gallery." : {
       "extractionState" : "manual",
