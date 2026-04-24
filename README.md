@@ -1,59 +1,69 @@
-# Video Downloader for iOS
+# Video Downloader for iOS 📱
 
-A professional, high-performance video downloader for iOS built with SwiftUI. This app allows users to seamlessly download high-quality videos from popular social media platforms including **Facebook and Instagram** directly to their Photo Library.
+[![Swift 5.10](https://img.shields.io/badge/Swift-5.10-orange.svg?style=flat)](https://developer.apple.com/swift/)
+[![Platform](https://img.shields.io/badge/Platform-iOS%2016.0+-blue.svg?style=flat)](https://apple.com/ios/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## 🚀 Features
+A professional-grade, high-performance video downloader for iOS built with **SwiftUI**. This application provides a seamless experience for extracting and saving high-quality media from social platforms like Facebook and Instagram directly to the native iOS Photo Library.
 
-- **Smart Magic Paste ✨**: Proactive clipboard monitoring that automatically detects video links from supported platforms and suggests a "one-tap" download experience upon opening the app.
-- **Multi-Platform Support**: Optimized for Facebook Reels/Videos and Instagram Reels/Stories.
-- **Smart Processing Engine**: 
-  - **Primary**: Powered by `LoadifyEngine.xcframework` for high-speed, direct extraction.
-  - **Fallback**: Intelligent multi-service fallback system that automatically cycles through multiple global **Cobalt API** nodes if the primary engine encounters platform-specific updates or decoding issues.
-- **Quality Control**: Select your preferred resolution (360p, 480p, 720p, 1080p, or Max Quality).
-- **Premium UI/UX**:
-  - Vibrant "Liquid Glass" design with custom gradients.
-  - Real-time download progress tracking.
-  - Native Haptic Feedback (`UIImpactFeedbackGenerator`) for every action.
-- **Auto-Save**: Automatic validation and saving to the iOS Photo Library with proper permissions handling.
+## ✨ Key Features
+
+- **Smart Magic Paste**: Utilizes proactive clipboard monitoring to detect video links automatically, offering a "one-tap" download experience immediately upon app launch.
+- **Dual-Engine Extraction**: 
+    - **Primary**: High-speed extraction via `LoadifyEngine.xcframework`.
+    - **Fallback**: Intelligent multi-service fallback system leveraging global **Cobalt API** nodes to ensure high availability.
+- **Advanced Quality Selection**: Supports multiple resolutions (360p to 1080p/Max Quality) with real-time metadata parsing.
+- **Premium UX/UI**: Features a "Liquid Glass" design aesthetic, custom gradients, and integrated **Haptic Feedback** (`UIImpactFeedbackGenerator`) for a tactile user experience.
+- **Robust Background Processing**: Leverages `URLSession` background configurations to ensure downloads complete even when the app is minimized.
+- **Photo Library Integration**: Automated permission handling and validation for saving content directly to `PHAsset` collections.
 
 ## 🛠 Tech Stack
 
-- **SwiftUI**: Modern declarative UI.
-- **MVVM Architecture**: Clean separation of concerns with a organized folder structure (**Models, Views, ViewModels, Services, Resources**).
-- **Swift Concurrency**: `async/await` for smooth, non-blocking network operations.
-- **Background Downloads**: Leverages `URLSession` background configuration to ensure downloads continue even if the app is suspended.
-- **External Engines**: 
-  - `LoadifyEngine.xcframework`: Proprietary binary extraction engine.
-  - **Cobalt API Nodes**: Leverages community instances for maximum uptime.
+- **UI Framework**: SwiftUI (Declarative UI)
+- **Architecture**: MVVM (Model-View-ViewModel) for clean separation of concerns and testability.
+- **Concurrency**: Modern Swift `async/await` for non-blocking network and extraction logic.
+- **Networking**: `URLSession` with background transfer support.
+- **Dependency Management**: Local XCFramework integration for proprietary logic.
+- **Feedback**: CoreHaptics / UIKit Haptics integration.
 
-## 📦 Installation & Setup
+## 📦 Project Structure
 
-1. **Clone the Repository**:
+```text
+Video Downloader/
+├── Models/             # Data structures and Video Metadata
+├── Views/              # SwiftUI Components and Liquid Glass UI
+├── ViewModels/         # Business logic and state management
+├── Services/           # Download & Extraction service layers
+└── Resources/          # Constants, Localizable strings, and Assets
+```
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Xcode 15.0+
+- iOS 16.0+ Target Device/Simulator
+- `LoadifyEngine.xcframework` (Included in root)
+
+### Installation
+1. Clone the repository:
    ```bash
    git clone https://github.com/elangbamjohnson/Video-Downloader.git
    ```
+2. Open `Video Downloader.xcodeproj` in Xcode.
+3. Ensure `LoadifyEngine.xcframework` is set to **"Embed & Sign"** in the Target settings under *General > Frameworks, Libraries, and Embedded Content*.
+4. Build and Run on a physical device for the best experience (Haptics and Photo Library).
 
-2. **Framework Integration**:
-   Ensure `LoadifyEngine.xcframework` is present in the project root.
-   In Xcode:
-   - Go to **Target** > **General** > **Frameworks, Libraries, and Embedded Content**.
-   - Ensure `LoadifyEngine.xcframework` is set to **Embed & Sign**.
+## 🛡 Permissions
+The app requires the following key in your `Info.plist`:
+- `NSPhotoLibraryAddUsageDescription`: Required to save downloaded videos to your gallery.
 
-3. **Permissions**:
-   The app requires `NSPhotoLibraryAddUsageDescription` in `Info.plist` to save videos to the gallery.
-
-## 📖 How to Use
-
-1. **Copy** a video link from Facebook or Instagram.
-2. **Open** the Video Downloader app.
-3. **Smart Suggestion**: A card will automatically appear if a valid link is detected in your clipboard. Tap **"Download Now"** for instant processing.
-4. **Manual**: Or, paste the link into the URL field and select your desired quality.
-5. **Download**: Tap **Download Video** and monitor progress in real-time.
-6. **Enjoy**: Once complete, find your video in the **Photos** app!
-
-## 🤝 Contribution
-
-Contributions are welcome! If you find a platform link that isn't working, please open an issue or submit a PR with an updated API instance.
+## 🤝 Contributing
+Contributions are what make the open-source community an amazing place to learn, inspire, and create.
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
-*Created by Johnson - April 2026*
+*Developed with ❤️ by **Johnson** (April 2026)*
